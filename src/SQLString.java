@@ -8,9 +8,18 @@ import java.util.stream.Collectors;
 
 public class SQLString {
 
+	class Parameter {
+		public String name;
+		public String partial;
+	}
+
+	// SQL Text
 	private String sqlText;
-	private List<String> parameters;
-	private List<Integer> parameterIndex;
+
+	// internal SQL Text
+	private String internalText;
+
+	private List<Parameter> parameters;
 
 	private String defaultValue(Object obj, String value, String defaultValue) {
 		return (obj == null) ? defaultValue : value;
@@ -28,26 +37,30 @@ public class SQLString {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 		sqlText = reader.lines().collect(Collectors.joining("\n"));
 
-		parameters = new ArrayList<String>();
-		parameterIndex = new ArrayList<Integer>();
 		extractParameters();
 	}
 
 	private void setParameter(String nombre, String valor) {
 		Boolean encontrado = false;
+		internalText = "";
+
 		for (int i = 0; i < parameters.size(); i++) {
-			if (parameters.get(i).equalsIgnoreCase(nombre)) {
-				int pos = parameterIndex.get(i);
-				sqlText = sqlText.substring(0, pos - 1) + valor + sqlText.substring(pos + 1);
+			if (parameters.get(i).name.equalsIgnoreCase(nombre)) {
+				internalText = internalText + parameters.get(i).partial + valor;
 				encontrado = true;
+			} else {
+				internalText += parameters.get(i).partial + "?";
 			}
 		}
+
 		if (!encontrado) {
 			throw new IllegalArgumentException(String.format("No existe el parametro [%s].", nombre));
 		}
 	}
 
 	private void extractParameters() {
+		parameters = new ArrayList<Parameter>();
+
 		int length = sqlText.length();
 		StringBuffer parsedQuery = new StringBuffer(length);
 
@@ -58,6 +71,8 @@ public class SQLString {
 
 		for (int i = 0; i < length; i++) {
 			char c = sqlText.charAt(i);
+			Parameter parameter = null;
+
 			if (inSingleQuote) {
 				if (c == '\'') {
 					inSingleQuote = false;
@@ -88,20 +103,18 @@ public class SQLString {
 					j++;
 				}
 				String name = sqlText.substring(i + 1, j);
-				parameters.add(name);
+				parameter = new Parameter();
+				parameter.name = name;
+				parameters.add(parameter);
 				c = '?';
 				i += name.length();
 			}
 			parsedQuery.append(c);
 		}
 
-		sqlText = parsedQuery.toString();
-
-		length = sqlText.length();
-		for (int i = 0; i < length; i++) {
-			if (sqlText.charAt(i) == '?') {
-				parameterIndex.add(i);
-			}
+		String[] textSplit = parsedQuery.toString().split("\\?");
+		for (int i = 0; i < parameters.size(); i++) {
+			parameters.get(i).partial = textSplit[i];
 		}
 	}
 
@@ -130,11 +143,13 @@ public class SQLString {
 	}
 
 	public String toString() {
-		return sqlText;
+		return internalText;
 	}
 
 	public void setSqlText(String sqlText) {
 		this.sqlText = sqlText;
+
+		extractParameters();
 	}
 
 }
