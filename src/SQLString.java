@@ -36,6 +36,7 @@ public class SQLString {
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 		sqlText = reader.lines().collect(Collectors.joining("\n"));
+		reader.close();
 
 		extractParameters();
 	}
