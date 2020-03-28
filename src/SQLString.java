@@ -6,11 +6,16 @@ import java.util.stream.Collectors;
 
 public class SQLString {
 
-	// SQL Text
 	private String sqlText;
 
-	private String defaultValue(Object obj, String value, String defaultValue) {
-		return (obj == null) ? defaultValue : value;
+	public SQLString() {
+		super();
+	}
+
+	public SQLString(String valor) {
+		super();
+
+		sqlText = valor;
 	}
 
 	public SQLString(Class<?> clase, String recurso) throws Exception {
@@ -25,6 +30,10 @@ public class SQLString {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 		sqlText = reader.lines().collect(Collectors.joining("\n")).toUpperCase();
 		reader.close();
+	}
+
+	private String defaultValue(Object obj, String valor, String defaultValue) {
+		return (obj == null) ? defaultValue : valor;
 	}
 
 	private void setParameter(String nombre, String valor) {
