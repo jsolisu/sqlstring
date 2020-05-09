@@ -19,17 +19,12 @@ public class SQLString {
 	}
 
 	public SQLString(Class<?> clase, String recurso) throws Exception {
-		super();
-
-		InputStream in = clase.getResourceAsStream(recurso);
-
-		if (in == null) {
+		try (InputStream in = clase.getResourceAsStream(recurso);
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+			sqlText = reader.lines().collect(Collectors.joining("\n"));
+		} catch (Exception e) {
 			throw new Exception(String.format("Recurso [%s] no encontrado.", recurso));
 		}
-
-		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-		sqlText = reader.lines().collect(Collectors.joining("\n")).toUpperCase();
-		reader.close();
 	}
 
 	private String defaultValue(Object obj, String valor, String defaultValue) {
