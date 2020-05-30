@@ -32,7 +32,7 @@ public class SQLString {
 	}
 
 	private void setParameter(String nombre, String valor) {
-		sqlText = sqlText.replaceAll(String.format(":%s(?=[^\\w])", nombre.trim().toUpperCase()), valor);
+		sqlText = sqlText.replaceAll(String.format(":%s(?=[^\\w]|$)", nombre.trim().toUpperCase()), valor);
 	}
 
 	public void setDouble(String nombre, Double valor) {
